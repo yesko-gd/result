@@ -2,9 +2,9 @@
 #define RESULT_H
 
 #include <ds.h>
-#include <stb_ds.h>
 
 #include <stddef.h>
+#include <string.h>
 
 typedef enum ResultCode {
     RESULT_OK = 0,
@@ -28,13 +28,17 @@ typedef struct Result {
 #define result_is_err(result) ((result).code != RESULT_OK)
 
 #define result_free(result) do { \
-    ds_free((result).message); \
+    Result r = (result); \
+    ds_free(r.message); \
     for (size_t i = 0; i < RESULT_STACK_SIZE; i++) { \
-        ds_free((result).stack[i]); \
+        ds_free(r.stack[i]); \
     } \
 } while (0)
 
-#define result_print(result) _result_print(&(result))
+#define result_print(result) do { \
+    Result r = (result); \
+    _result_print(&r); \
+} while (0)
 
 #define result_ok ((Result){ \
     .code = RESULT_OK, \
@@ -55,16 +59,23 @@ typedef struct Result {
     return result; \
 } while (0)
 
-#define result_return_on_err(result) if (result_is_err((result))) do { \
+#define result_return_on_err(result) do { \
+    Result r = (result); \
+    if (!result_is_err(r)) { \
+        break; \
+    } \
     size_t index = 0; \
-    for (size_t i = 0; i < RESULT_STACK_SIZE; i++) { \
-        index++; \
-        if ((result).stack[i]) { \
+    for (; index < RESULT_STACK_SIZE; index++) { \
+        if (!r.stack[index]) { \
             break; \
         } \
     } \
-    _result_printf_stack((result).stack[index]); \
-    return result; \
+    if (index >= RESULT_STACK_SIZE) { \
+        memmove(r.stack, r.stack + 1, sizeof(*r.stack) * (RESULT_STACK_SIZE - 1)); \
+        index = RESULT_STACK_SIZE - 1; \
+    } \
+    _result_printf_stack(r.stack[index]); \
+    return r; \
 } while (0)
 
 void _result_print(const Result *result);

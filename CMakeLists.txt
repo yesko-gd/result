@@ -3,7 +3,6 @@ add_library(result)
 target_link_libraries(result
     PUBLIC
         dynamic_string
-        stb_ds
 )
 
 target_sources(result
