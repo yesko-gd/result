@@ -4,7 +4,6 @@
 #include <ds.h>
 
 #include <stddef.h>
-#include <string.h>
 
 typedef enum ResultCode {
     RESULT_OK = 0,

@@ -1,6 +1,7 @@
 #include "result.h"
 
 #include <stdio.h>
+#include <string.h>
 
 void _result_print(const Result *result) {
     if (!result_is_err(*result)) {
