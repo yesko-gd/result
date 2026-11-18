@@ -46,38 +46,17 @@ typedef struct Result {
     .stack = { }, \
 })
 
-#define _result_printf_stack(str) ds_printf((str), "%s:%d", __FILE__, __LINE__)
+#define _result_new_printf_stack_entry(file, line) ds_new_printf("%s:%d", (file), (line))
 
-#define result_return_err(msg_format, ...) do { \
-    Result result = { \
-        .code = RESULT_ERR, \
-        .message = nullptr, \
-        .stack = { }, \
-    }; \
-    ds_printf(result.message, (msg_format), __VA_ARGS__); \
-    _result_printf_stack(result.stack[0]); \
-    return result; \
-} while (0)
+#define result_err(msg_format, ...) (Result){ \
+    .code = RESULT_ERR, \
+    .message = ds_new_printf((msg_format) __VA_OPT__(,) __VA_ARGS__), \
+    .stack = { _result_new_printf_stack_entry(__FILE__, __LINE__) }, \
+}
 
-#define result_return_on_err(result) do { \
-    Result r = (result); \
-    if (!result_is_err(r)) { \
-        break; \
-    } \
-    size_t index = 0; \
-    for (; index < RESULT_STACK_SIZE; index++) { \
-        if (!r.stack[index]) { \
-            break; \
-        } \
-    } \
-    if (index >= RESULT_STACK_SIZE) { \
-        memmove(r.stack, r.stack + 1, sizeof(*r.stack) * (RESULT_STACK_SIZE - 1)); \
-        index = RESULT_STACK_SIZE - 1; \
-    } \
-    _result_printf_stack(r.stack[index]); \
-    return r; \
-} while (0)
+#define result_pass(result) _result_pass(result, __FILE__, __LINE__)
 
 void _result_print(const Result *result);
+Result _result_pass(Result result, const char *file, int line);
 
 #endif
