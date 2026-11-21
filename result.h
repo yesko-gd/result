@@ -45,17 +45,22 @@ typedef struct Result {
     .stack = { }, \
 })
 
-#define _result_new_printf_stack_entry(file, line) ds_new_printf("%s:%d", (file), (line))
+#define _result_new_printf_stack_entry(func, file, line) ds_new_printf("%s:%d - %s", (file), (line), (func))
 
 #define result_err(msg_format, ...) (Result){ \
     .code = RESULT_ERR, \
     .message = ds_new_printf((msg_format) __VA_OPT__(,) __VA_ARGS__), \
-    .stack = { _result_new_printf_stack_entry(__FILE__, __LINE__) }, \
+    .stack = { _result_new_printf_stack_entry(__func__, __FILE__, __LINE__) }, \
 }
 
-#define result_pass(result) _result_pass(result, __FILE__, __LINE__)
+#define result_pass(result) _result_pass(result, __func__, __FILE__, __LINE__)
+/**
+ * Checks if a result represents an error value. If it does, returns the passed result (see result_pass()) via out and returns true. Otherwise returns false.
+ * @param result The result to check.
+ */
+#define result_pass_err(out, result) result_is_err(((out) = result_pass(result)))
 
 void _result_print(const Result *result);
-Result _result_pass(Result result, const char *file, int line);
+Result _result_pass(Result result, const char *func, const char *file, int line);
 
 #endif

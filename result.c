@@ -26,19 +26,21 @@ void _result_print(const Result *result) {
     }
 }
 
-Result _result_pass(Result result, const char *file, int line) {
-    if (result_is_err(result)) {
-        size_t index = 0;
-        for (; index < RESULT_STACK_SIZE; index++) {
-            if (!result.stack[index]) {
-                break;
-            }
-        }
-        if (index >= RESULT_STACK_SIZE) {
-            memmove(result.stack, result.stack + 1, sizeof(*result.stack) * (RESULT_STACK_SIZE - 1));
-            index = RESULT_STACK_SIZE - 1;
-        }
-        result.stack[index] = _result_new_printf_stack_entry(file, line);
+Result _result_pass(Result result, const char *func, const char *file, int line) {
+    if (!result_is_err(result)) {
+        return result;
     }
+
+    size_t index = 0;
+    for (; index < RESULT_STACK_SIZE; index++) {
+        if (!result.stack[index]) {
+            break;
+        }
+    }
+    if (index >= RESULT_STACK_SIZE) {
+        memmove(result.stack, result.stack + 1, sizeof(*result.stack) * (RESULT_STACK_SIZE - 1));
+        index = RESULT_STACK_SIZE - 1;
+    }
+    result.stack[index] = _result_new_printf_stack_entry(func, file, line);
     return result;
 }
